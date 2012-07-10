@@ -1,5 +1,4 @@
 [
-	// Location 1
 	{"locationCode": "1", "materialCode": "Sand",
 	    "timeBuckets": [
 	        {
@@ -900,8 +899,6 @@
 	    ]
 	},
 
-
-	// Location 2
 	{"locationCode": "2", "materialCode": "RSand",
 	    "timeBuckets": [
 	        {

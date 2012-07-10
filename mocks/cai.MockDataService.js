@@ -19,11 +19,6 @@ cai.DataService = function(port, folder) {
 		var restify = require('restify');
 		var server = restify.createServer();
         
-    	console.log('Creating POST routes...');
-		server.post('/Demand/Location/:id/Material/:code/StartTime/:time', self.postDemand);
-		server.post('/Inventory/Location/:id', self.postInventoryLocation);
-		server.post('/Inventory/Location/:id/Material/:code', self.postInventoryLocationMaterial);
-        
     	console.log('Creating GET routes...');
 		server.get('/Locations', self.getLocations);
 		server.get('/Materials/Location/:id', self.getMaterialsLocation);
@@ -42,20 +37,13 @@ cai.DataService = function(port, folder) {
     
     self.getLocations = function(req, res, next) {
     	try {
-        	var content = self.readFile("cai.MockLocations.js");
-            console.log("content = " + content);
-            if (!content) {
-            	res.writeHead(404);            
-                res.end();        
-            }
-            else if (content.error !== undefined) {
-            	res.writeHead(content.error);            
-                res.end();        
-            }
-            else {
-            	res.writeHead(200, { 'Content-Type': 'application/json' });                    
-                res.end(content, 'utf-8');                
-            }
+        	console.log("Get Locations");
+        
+        	var locations = require(self.Folder + "/mocks/cai.MockLocations.json");
+            console.log("locations = " + locations);
+            
+            res.writeHead(200, { 'Content-Type': 'application/json' });                    
+            res.end(JSON.stringify(locations), 'utf-8');
 	    } catch (ex) {
 	    	console.log('Error in processing get location request: ' + ex);
 	    }
@@ -63,35 +51,24 @@ cai.DataService = function(port, folder) {
         
     self.getMaterialsLocation = function(req, res, next) {
     	try {
-        	var content = self.readFile("cai.MockMaterials.js");
-            console.log("content = " + content);
-            if (!content) {
-            	res.writeHead(404);            
-                res.end();        
-            }
-            else if (content.error !== undefined) {
-            	res.writeHead(content.error);            
-                res.end();        
-            }
-            else {
-        		var location = req.params.id;
-            	var materials = [];
-            
-            	console.log("Filter materials for location: " + location);
-                var json = JSON.parse(content);
-                for (var i=0; i<json.length; i++) {
-                	var material = json[i];
-                	if (!location || location.length < 1 || location == material.locationCode) {
-                    	materials.push(material);
-                    }
-                }
-                console.log("Filtered materials:");
-                console.log(materials);
-                
-            	res.writeHead(200, { 'Content-Type': 'application/json' });                    
-                res.end(JSON.stringify(materials), 'utf-8');                
-            }
+    		var location = req.params.id;
+        	console.log("Get Materials for Location " + location);
+        	var json = require(self.Folder + "/mocks/cai.MockMaterials.json");
+            console.log("materials = " + json);
+        	var materials = [];
         
+        	console.log("Filter materials for location: " + location);
+            for (var i=0; i<json.length; i++) {
+            	var material = json[i];
+            	if (!location || location.length < 1 || location == material.locationCode) {
+                	materials.push(material);
+                }
+            }
+            console.log("Filtered materials:");
+            console.log(materials);
+            
+        	res.writeHead(200, { 'Content-Type': 'application/json' });                    
+            res.end(JSON.stringify(materials), 'utf-8');                
 	    } catch (ex) {
 	    	console.log('Error in processing get materials for location request: ' + ex);
 	    }
@@ -117,41 +94,6 @@ cai.DataService = function(port, folder) {
 	    	console.log('Error in processing get inventory for location and material request: ' + ex);
 	    }
 	}
-        
-    self.postDemand = function(req, res, next) {
-    	try {
-	    } catch (ex) {
-	    	console.log('Error in processing post demand request: ' + ex);
-	    }
-	}
-    
-    self.postInventoryLocation = function(req, res, next) {
-    	try {
-	    } catch (ex) {
-	    	console.log('Error in processing post inventory for location request: ' + ex);
-	    }
-	}
-    
-    self.postInventoryLocationMaterial = function(req, res, next) {
-    	try {
-	    } catch (ex) {
-	    	console.log('Error in processing post inventory for location and material request: ' + ex);
-	    }
-	}
-    
-    self.readFile = function(filename) {
-	    var filePath = self.Folder + "/mocks/" + filename;
-        console.log("Reading file from [" + filePath + "]");
-        var fs = require('fs');
-        var path = require('path'); 
-        
-        if (path.existsSync(filePath)) {             
-            return fs.readFileSync(filePath);
-		}        
-        else {            
-        	return null;
-		}   
-    }
 };
 
 // main entry point

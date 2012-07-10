@@ -17,13 +17,24 @@ cai.HubClient = function(url) {
 		    self.socket.on('set locations', function(data) {
 		        console.log("Set Locations");
 		        console.log(data);
-				self.stop();
+				//self.stop();
 		    });
             
 		    self.socket.on('set materials', function(data) {
 		        console.log("Set Materials");
 		        console.log(data);
-				self.stop();
+				//self.stop();
+		    });
+            
+		    self.socket.on('demand change', function(data) {
+		        console.log("Demand Change");
+		        console.log(data);
+                var demands = data;
+                for (var i=0; i<demands.length; i++) {
+                	var demand = demands[i];
+                	console.log(demand);
+                }
+				//self.stop();
 		    });
             
         });
@@ -56,9 +67,7 @@ cai.HubClient = function(url) {
 		hc.start();
         
         //hc.getLocations();
-        hc.getMaterials(2);
-        
-        console.log("Bye!");
+        //hc.getMaterials(2);
     } catch (ex) {
     	console.log('Error in creating Hub Client: ' + ex);
     }

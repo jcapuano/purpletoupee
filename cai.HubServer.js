@@ -9,13 +9,12 @@ cai.DataService = function(urlbase) {
     
     self.URL = urlbase || cDefaultDataServiceURL;
     
-    self.sys = require('util'),
     self.rest = require('restler');
     
     self.getLocations = function(callback) {
     	try {
         	var url = self.URL + 'Locations';
-            self.call(url, callback);
+            self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving locations: ' + ex);
 	    }
@@ -24,34 +23,40 @@ cai.DataService = function(urlbase) {
     self.getMaterialsLocation = function(location, callback) {
     	try {
         	var url = self.URL + 'Materials/Location/' + location;
-            self.call(url, callback);
+            self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving materials for location: ' + ex);
 	    }
 	}
         
-    self.getDemand = function(location, material, starttime, buckets) {
+    self.getDemand = function(location, material, starttime, buckets, callback) {
     	try {
+        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material + '/StartTime/' + startime + '/NumBuckets/' + buckets;
+            self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving demand: ' + ex);
 	    }
 	}
         
-    self.getInventoryLocation = function(location) {
+    self.getInventoryLocation = function(location, callback) {
     	try {
+        	var url = self.URL + 'Demand/Location/' + location;
+            self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving inventory for location: ' + ex);
 	    }
 	}
         
-    self.getInventoryLocationMaterial = function(location, material) {
+    self.getInventoryLocationMaterial = function(location, material, callback) {
     	try {
+        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material;
+            self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving inventory for location and material: ' + ex);
 	    }
 	}
     
-    self.call = function(url, callback) {
+    self.get = function(url, callback) {
         self.rest.get(url).on('complete', function(result) {
         	if (result instanceof Error) {
             	callback({error: result.message});
@@ -102,11 +107,31 @@ cai.IoServer = function(port, dataservice) {
 		        	self.DataService.getMaterialsLocation(location, function(data) {
                     	socket.emit('set materials', data);
                     });
-                    
 			    } catch (ex) {
 			    	console.log('Error in retrieving materials: ' + ex);
 			    }
             });
+            
+            socket.on('get demand', function(location, material, starttime, buckets) {
+		    	try {
+		        	self.DataService.getDemand(location, material, starttime, buckets, function(data) {
+                    	socket.emit('set demand', data);
+                    });
+			    } catch (ex) {
+			    	console.log('Error in retrieving demand: ' + ex);
+			    }
+            });
+            
+            socket.on('get inventory', function(location) {
+		    	try {
+		        	self.DataService.getInventoryLocation(location, function(data) {
+                    	socket.emit('set inventory', data);
+                    });
+			    } catch (ex) {
+			    	console.log('Error in retrieving on hand inventory: ' + ex);
+			    }
+            });
+            
 		});
         
         console.log('Hub IO Server running at http://127.0.0.1:' + self.Port + '/');
@@ -144,6 +169,7 @@ cai.RestServer = function(port, ioserver) {
     
 		var restify = require('restify');
 		var server = restify.createServer();
+        server.use(restify.bodyParser({ mapParams: false })); 
         
     	console.log('Creating POST routes...');
 		server.post('/Demand/Location/:id/Material/:code/StartTime/:time', self.postDemand);
@@ -161,6 +187,8 @@ cai.RestServer = function(port, ioserver) {
     
     self.postDemand = function(req, res, next) {
     	try {
+        	console.log("Received Post Demand: " + req.url);
+            //console.log(req);
 	    	//req.params.id
             //req.params.code
             //req.params.time
@@ -173,10 +201,11 @@ cai.RestServer = function(port, ioserver) {
     
     self.postInventoryLocation = function(req, res, next) {
     	try {
+        	console.log("Received Post Inventory: " + req.url);
+            //console.log(req);
 	    	//req.params.id
             self.IOServer.broadcastInventory(req.body);
             res.send();	//???
-        
 	    } catch (ex) {
 	    	console.log('Error in processing post inventory for location request: ' + ex);
 	    }
@@ -184,6 +213,7 @@ cai.RestServer = function(port, ioserver) {
     
     self.postInventoryLocationMaterial = function(req, res, next) {
     	try {
+        	console.log("Received Post Inventory: " + req.url);
 	    	//req.params.id
 	    	//req.params.code
             self.IOServer.broadcastInventory(req.body);
