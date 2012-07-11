@@ -22,7 +22,7 @@ cai.DataService = function(port, folder) {
     	console.log('Creating GET routes...');
 		server.get('/Locations', self.getLocations);
 		server.get('/Materials/Location/:id', self.getMaterialsLocation);
-		server.get('/Demand/Location/:id/Material/:code/StartTime/:time', self.getDemand);
+		server.get('/Demand/Location/:id/Material/:code/StartTime/:time/NumBuckets/:num', self.getDemand);
 		server.get('/Inventory/Location/:id', self.getInventoryLocation);
 		server.get('/Inventory/Location/:id/Material/:code', self.getInventoryLocationMaterial);
         
@@ -76,6 +76,26 @@ cai.DataService = function(port, folder) {
         
     self.getDemand = function(req, res, next) {
     	try {
+    		var location = req.params.id;
+    		var material = req.params.code;
+        	console.log("Get Demand for Location " + location + ", Material " + material);
+        	var json = require(self.Folder + "/mocks/cai.MockDemand.json");
+            console.log("demands = " + json);
+        	var demands = [];
+        
+        	console.log("Filter demands for location: " + location + ", material: " + material);
+            for (var i=0; i<json.length; i++) {
+            	var demand = json[i];
+            	if ((!location || location.length < 1 || location == demand.locationCode) && 
+	                (!material || material.length < 1 || material == demand.materialCode)) {
+                	demands.push(demand);
+                }
+            }
+            console.log("Filtered demands:");
+            console.log(demands);
+            
+        	res.writeHead(200, { 'Content-Type': 'application/json' });                    
+            res.end(JSON.stringify(demands), 'utf-8');                
 	    } catch (ex) {
 	    	console.log('Error in processing get demand request: ' + ex);
 	    }
@@ -83,6 +103,25 @@ cai.DataService = function(port, folder) {
         
     self.getInventoryLocation = function(req, res, next) {
     	try {
+    		var location = req.params.id;
+        	console.log("Get On Hand Inventory for Location " + location);
+        	var json = require(self.Folder + "/mocks/cai.MockInventory.json");
+            console.log("inventories = " + json);
+        	var onhands = [];
+        
+        	console.log("Filter inventories for location: " + location);
+            for (var i=0; i<json.length; i++) {
+            	var onhand = json[i];
+            	if ((!location || location.length < 1 || location == onhand.locationCode)) {
+                	onhands.push(onhand);
+                }
+            }
+            console.log("Filtered inventories:");
+            console.log(onhands);
+            
+        	res.writeHead(200, { 'Content-Type': 'application/json' });                    
+            res.end(JSON.stringify(onhands), 'utf-8');                
+        
 	    } catch (ex) {
 	    	console.log('Error in processing get inventory for location request: ' + ex);
 	    }
@@ -90,6 +129,27 @@ cai.DataService = function(port, folder) {
         
     self.getInventoryLocationMaterial = function(req, res, next) {
     	try {
+    		var location = req.params.id;
+    		var material = req.params.code;
+        	console.log("Get Inventory for Location " + location + ", Material " + material);
+        	var json = require(self.Folder + "/mocks/cai.MockInventory.json");
+            console.log("inventories = " + json);
+        	var onhands = [];
+        
+        	console.log("Filter inventories for location: " + location + ", material: " + material);
+            for (var i=0; i<json.length; i++) {
+            	var onhand = json[i];
+            	if ((!location || location.length < 1 || location == onhand.locationCode) && 
+	                (!material || material.length < 1 || material == onhand.materialCode)) {
+                	onhands.push(onhand);
+                }
+            }
+            console.log("Filtered inventories:");
+            console.log(onhands);
+            
+        	res.writeHead(200, { 'Content-Type': 'application/json' });                    
+            res.end(JSON.stringify(onhands), 'utf-8');                
+        
 	    } catch (ex) {
 	    	console.log('Error in processing get inventory for location and material request: ' + ex);
 	    }

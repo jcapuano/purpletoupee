@@ -4,7 +4,7 @@ var cDefaultIOPort = 3030;
 var cDefaultRESTPort = 7070;
 var cDefaultDataServiceURL = "http://localhost:8080/RTG";
 
-cai.DataService = function(urlbase) {
+cai.DataServiceClient = function(urlbase) {
 	var self = this;
     
     self.URL = urlbase || cDefaultDataServiceURL;
@@ -13,6 +13,7 @@ cai.DataService = function(urlbase) {
     
     self.getLocations = function(callback) {
     	try {
+        	console.log("Get Locations");
         	var url = self.URL + 'Locations';
             self.get(url, callback);
 	    } catch (ex) {
@@ -22,6 +23,7 @@ cai.DataService = function(urlbase) {
         
     self.getMaterialsLocation = function(location, callback) {
     	try {
+        	console.log("Get Materials for Location " + location);
         	var url = self.URL + 'Materials/Location/' + location;
             self.get(url, callback);
 	    } catch (ex) {
@@ -31,7 +33,9 @@ cai.DataService = function(urlbase) {
         
     self.getDemand = function(location, material, starttime, buckets, callback) {
     	try {
-        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material + '/StartTime/' + startime + '/NumBuckets/' + buckets;
+        	console.log("Get Demand for Location " + location + ", Material " + material + ", Start " + starttime + ", Buckets " + buckets);
+        
+        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material + '/StartTime/' + starttime + '/NumBuckets/' + buckets;
             self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving demand: ' + ex);
@@ -39,8 +43,10 @@ cai.DataService = function(urlbase) {
 	}
         
     self.getInventoryLocation = function(location, callback) {
-    	try {
-        	var url = self.URL + 'Demand/Location/' + location;
+    	try {			   1
+        	console.log("Get Inventory for Location " + location);
+        
+        	var url = self.URL + 'Inventory/Location/' + location;
             self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving inventory for location: ' + ex);
@@ -49,7 +55,9 @@ cai.DataService = function(urlbase) {
         
     self.getInventoryLocationMaterial = function(location, material, callback) {
     	try {
-        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material;
+        	console.log("Get Inventory for Location " + location + ", Material " + material);
+        
+        	var url = self.URL + 'Inventory/Location/' + location + '/Material/' + material;
             self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving inventory for location and material: ' + ex);
@@ -57,6 +65,7 @@ cai.DataService = function(urlbase) {
 	}
     
     self.get = function(url, callback) {
+    	console.log("Calling REST URL: " + url);
         self.rest.get(url).on('complete', function(result) {
         	if (result instanceof Error) {
             	callback({error: result.message});
@@ -231,7 +240,7 @@ cai.HubServer = function(ioport, restport, dsurl) {
 	self.RESTPort = restport || cDefaultRESTPort;
 	self.DataServiceURL = dsurl || cDefaultDataServiceURL;
     
-    self.dataService = new cai.DataService(self.DataServiceURL);
+    self.dataService = new cai.DataServiceClient(self.DataServiceURL);
     self.ioServer = new cai.IoServer(self.IOPort, self.dataService);
     self.restServer = new cai.RestServer(self.RESTPort, self.ioServer);
     
