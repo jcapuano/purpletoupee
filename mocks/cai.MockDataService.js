@@ -18,11 +18,13 @@ cai.DataService = function(port, folder) {
     
 		var restify = require('restify');
 		var server = restify.createServer();
+        server.use(restify.queryParser());
         
     	console.log('Creating GET routes...');
 		server.get('/Locations', self.getLocations);
 		server.get('/Materials/Location/:id', self.getMaterialsLocation);
-		server.get('/Demand/Location/:id/Material/:code/StartTime/:time/NumBuckets/:num', self.getDemand);
+		//server.get('/Demand/Location/:id/Material/:code/StartTime/:time/NumBuckets/:num', self.getDemand);
+		server.get('/Demand/Location/:id/Material/:code/NumBuckets/:num', self.getDemand);
 		server.get('/Inventory/Location/:id', self.getInventoryLocation);
 		server.get('/Inventory/Location/:id/Material/:code', self.getInventoryLocationMaterial);
         
@@ -78,6 +80,8 @@ cai.DataService = function(port, folder) {
     	try {
     		var location = req.params.id;
     		var material = req.params.code;
+    		var starttime = req.params.starttime;
+    		var buckets = req.params.num;
         	console.log("Get Demand for Location " + location + ", Material " + material);
         	var json = require(self.Folder + "/mocks/cai.MockDemand.json");
             console.log("demands = " + json);

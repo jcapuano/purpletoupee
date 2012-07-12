@@ -35,7 +35,8 @@ cai.DataServiceClient = function(urlbase) {
     	try {
         	console.log("Get Demand for Location " + location + ", Material " + material + ", Start " + starttime + ", Buckets " + buckets);
         
-        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material + '/StartTime/' + starttime + '/NumBuckets/' + buckets;
+        	//var url = self.URL + 'Demand/Location/' + location + '/Material/' + material + '/StartTime/' + starttime + '/NumBuckets/' + buckets;
+        	var url = self.URL + 'Demand/Location/' + location + '/Material/' + material + '/NumBuckets/' + buckets;
             self.get(url, callback);
 	    } catch (ex) {
 	    	console.log('Error in retrieving demand: ' + ex);
@@ -178,10 +179,12 @@ cai.RestServer = function(port, ioserver) {
     
 		var restify = require('restify');
 		var server = restify.createServer();
+        server.use(restify.queryParser());
         server.use(restify.bodyParser({ mapParams: false })); 
         
     	console.log('Creating POST routes...');
-		server.post('/Demand/Location/:id/Material/:code/StartTime/:time', self.postDemand);
+		//server.post('/Demand/Location/:id/Material/:code/StartTime/:time', self.postDemand);
+		server.post('/Demand/Location/:id/Material/:code', self.postDemand);
 		server.post('/Inventory/Location/:id', self.postInventoryLocation);
 		server.post('/Inventory/Location/:id/Material/:code', self.postInventoryLocationMaterial);
         
@@ -200,7 +203,7 @@ cai.RestServer = function(port, ioserver) {
             //console.log(req);
 	    	//req.params.id
             //req.params.code
-            //req.params.time
+            //req.params.starttime
             self.IOServer.broadcastDemand(req.body);
             res.send();	//???
 	    } catch (ex) {
